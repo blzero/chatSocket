@@ -1,0 +1,127 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+
+    <link rel="stylesheet" href="/stylesheets/chat.css">
+    <script src="/javascripts/socket.io.js"></script>
+    
+</head>
+<body>
+    
+    
+    <div id="content">
+        <h3><%= title %></h3>
+        <button id='switchBtn'>切换</button>
+        <ul id="list">
+        </ul>
+        
+        <input type="text" placeholder="输入内容" id="inputData">
+        <input type="button" value="发送" id='sendBtn'>
+    </div>
+   
+   
+   
+    <script>
+        //socket 链接
+        var socket = io.connect('10.11.55.111:8080');
+
+        //接收到 消息
+        socket.on('message',function(data){
+             createItem(ulList,data,1);
+        });
+        socket.on('connect',function(){
+            console.log('链接成功');
+        });
+
+        //
+        var sendBtn = document.getElementById('sendBtn');
+        var inputData = document.getElementById('inputData');
+        var ulList = document.getElementById('list');
+        var switchBtn = document.getElementById('switchBtn');
+        var type = 2;
+        switchBtn.onclick = function(){
+            if(type == 2){
+                type = 1;
+                this.innerHTML = '机器';
+            }else{
+                type = 2;
+                this.innerHTML = '切换';                
+            }
+        }
+
+        //发送消息 按钮
+        sendBtn.onclick = function(){
+            var value = inputData.value;
+            var data = {type:type,content:value};
+             
+            if (data.content){
+                socket.send(data);//发送到服务器
+                createItem(ulList,data.content,2);
+            }else{
+                alert("输入内容");
+            }
+        }
+        // num :1 服务器消息 , 2,发送消息
+        function createItem(list,data,num){
+            var li = document.createElement('li');
+
+             if((typeof data) == 'object'){
+                 //机器 对话
+                  li.innerHTML = data.text;
+                 if(data.url){
+                    var a = document.createElement('a');
+                    a.href = data.url;
+                    a.target = '_blank';
+                    a.innerHTML = data.url;
+                    li.appendChild(a);
+                 }
+
+                 if(data.list){
+                     var array = data.list;
+                     for(var i = 0;i < array.length;i++){
+                         var a = document.createElement('a');
+                         a.style.display = 'block';
+
+                         var imgA = document.createElement('a');
+                         imgA.style.height = '100px';
+                         imgA.style.display = 'block';
+                         imgA.href = array[i].icon;
+                         imgA.target = '_blank';
+                         imgA.style.background = 'url(' + array[i].icon + ') no-repeat';
+
+                         li.appendChild(imgA);
+
+                         a.href = array[i].detailurl;
+                         a.innerHTML = array[i].article;
+                         a.target = '_blank';
+                         a.style.marginBottom = '10px';
+                         a.style.borderBottom = '1px solid #f48';
+                         li.appendChild(a);
+                     }
+                     
+                 };
+
+
+
+            }else{
+                //
+                 li.innerHTML = data;
+            }
+           
+            //远程消息
+            if (num == 1){
+
+            }else{
+                li.style.textAlign = 'right';
+                li.style.background = '#f87';
+                li.style.alpha = '0.6';
+                li.style.textColor = '#f46';
+            }
+            list.appendChild(li);
+            list.scrollTop = 9999999;
+        }
+
+    </script>
+</body>
+</html>
