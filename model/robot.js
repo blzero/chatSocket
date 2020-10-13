@@ -7,6 +7,9 @@ var apikey = '';
 var userId = '';
 
 fs.readFile('./apikey.txt', function(err, data) {
+    if (err) {
+        return
+    }
     apikey = data.toString();
 });
 
